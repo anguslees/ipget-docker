@@ -34,7 +34,21 @@ steps:
     commands:
       - go build -o amd64/ipget -ldflags='-s -w'
       - cp Dockerfile amd64/
-      - docker build amd64 -t ipget-$GOOS-$GOARCH- .
+
+  - name: docker-amd64
+    image: plugins/docker
+    settings:
+      context: amd64
+      repo: quay.io/anguslees/ipget
+      auto_tag: true
+      auto_tag_suffix: linux-amd64
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event:
+        - push
 
   - name: armv6
     image: golang:1.12.4
@@ -46,7 +60,21 @@ steps:
     commands:
       - go build -o armv6/ipget -ldflags='-s -w'
       - cp Dockerfile armv6/
-      - docker build armv6 -t ipget-$GOOS-$GOARCH-$GOARM .
+
+  - name: docker-armv6
+    image: plugins/docker
+    settings:
+      context: armv6
+      repo: quay.io/anguslees/ipget
+      auto_tag: true
+      auto_tag_suffix: linux-arm-v6
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event:
+        - push
 
   - name: armv7
     image: golang:1.12.4
@@ -58,7 +86,21 @@ steps:
     commands:
       - go build -o armv7/ipget -ldflags='-s -w'
       - cp Dockerfile armv7/
-      - docker build armv7 -t ipget-$GOOS-$GOARCH-$GOARM .
+
+  - name: docker-armv7
+    image: plugins/docker
+    settings:
+      context: armv7
+      repo: quay.io/anguslees/ipget
+      auto_tag: true
+      auto_tag_suffix: linux-arm-v7
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event:
+        - push
 
   - name: arm64
     image: golang:1.12.4
@@ -69,23 +111,44 @@ steps:
     commands:
       - go build -o arm64/ipget -ldflags='-s -w'
       - cp Dockerfile arm64/
-      - docker build arm64 -t ipget-$GOOS-$GOARCH- .
+
+  - name: docker-arm64
+    image: plugins/docker
+    settings:
+      context: arm64
+      repo: quay.io/anguslees/ipget
+      auto_tag: true
+      auto_tag_suffix: linux-arm64
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event:
+        - push
 
   - name: manifest
     image: plugins/manifest
     settings:
-      target: anguslees/ipget
-      template: anguslees/igpget-OS-ARCH-VARIANT
+      target: quay.io/anguslees/ipget
+      template: quay.io/anguslees/ipget:OS-ARCH-VARIANT
       platforms:
         - linux/amd64
         - linux/arm/v6
         - linux/arm/v7
         - linux/arm64
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event:
+        - push
 
   - name: publish
     image: plugins/docker
     settings:
-      repo: anguslees/ipget
+      repo: quay.io/anguslees/ipget
       auto_tag: true
       username:
         from_secret: docker_username
