@@ -1,0 +1,88 @@
+kind: pipeline
+name: default
+
+workspace:
+  base: /go
+  path: src/github.com/ipfs/ipget
+
+steps:
+  - name: myclone
+    image: docker:git
+    commands:
+      - |
+        git clone ${DRONE_TAG:+-b $DRONE_TAG} https://github.com/ipfs/ipget.git
+
+  - name: deps
+    image: golang:1.12.4
+    commands:
+      - make deps
+
+  - name: amd64
+    image: golang:1.12.4
+    environment:
+      GOOS: linux
+      GOARCH: amd64
+      CGO_ENABLED: 0
+    commands:
+      - go build -o amd64/ipget -ldflags='-s -w'
+      - cp Dockerfile amd64/
+      - docker build amd64 -t ipget-$GOOS-$GOARCH- .
+
+  - name: armv6
+    image: golang:1.12.4
+    environment:
+      GOOS: linux
+      GOARCH: arm
+      GOARM: 6
+      CGO_ENABLED: 0
+    commands:
+      - go build -o armv6/ipget -ldflags='-s -w'
+      - cp Dockerfile armv6/
+      - docker build armv6 -t ipget-$GOOS-$GOARCH-$GOARM .
+
+  - name: armv7
+    image: golang:1.12.4
+    environment:
+      GOOS: linux
+      GOARCH: arm
+      GOARM: 7
+      CGO_ENABLED: 0
+    commands:
+      - go build -o armv7/ipget -ldflags='-s -w'
+      - cp Dockerfile armv7/
+      - docker build armv7 -t ipget-$GOOS-$GOARCH-$GOARM .
+
+  - name: arm64
+    image: golang:1.12.4
+    environment:
+      GOOS: linux
+      GOARCH: arm64
+      CGO_ENABLED: 0
+    commands:
+      - go build -o arm64/ipget -ldflags='-s -w'
+      - cp Dockerfile arm64/
+      - docker build arm64 -t ipget-$GOOS-$GOARCH- .
+
+  - name: manifest
+    image: plugins/manifest
+    settings:
+      target: anguslees/ipget
+      template: anguslees/igpget-OS-ARCH-VARIANT
+      platforms:
+        - linux/amd64
+        - linux/arm/v6
+        - linux/arm/v7
+        - linux/arm64
+
+  - name: publish
+    image: plugins/docker
+    settings:
+      repo: anguslees/ipget
+      auto_tag: true
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+    when:
+      event:
+        - push
