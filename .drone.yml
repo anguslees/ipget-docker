@@ -1,6 +1,9 @@
 kind: pipeline
 name: default
 
+clone:
+  disable: true
+
 workspace:
   base: /go
   path: src/github.com/ipfs/ipget
@@ -9,13 +12,18 @@ steps:
   - name: myclone
     image: docker:git
     commands:
-      - |
-        git clone ${DRONE_TAG:+-b $DRONE_TAG} https://github.com/ipfs/ipget.git
+      - git clone -b ${DRONE_TAG:-master} https://github.com/ipfs/ipget.git $DRONE_WORKSPACE
 
   - name: deps
     image: golang:1.12.4
     commands:
       - make deps
+      - |
+        cat <<EOF >Dockerfile
+        FROM scratch
+        COPY ipget /usr/bin/
+        ENTRYPOINT ["ipget"]
+        EOF
 
   - name: amd64
     image: golang:1.12.4
