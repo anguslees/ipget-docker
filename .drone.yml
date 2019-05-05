@@ -1,5 +1,10 @@
+---
 kind: pipeline
 name: default
+
+platform:
+  os: linux
+  arch: amd64
 
 clone:
   disable: true
@@ -9,151 +14,148 @@ workspace:
   path: src/github.com/ipfs/ipget
 
 steps:
-  - name: myclone
-    image: docker:git
-    commands:
-      - git clone -b ${DRONE_TAG:-master} https://github.com/ipfs/ipget.git $DRONE_WORKSPACE
+- name: myclone
+  image: docker:git
+  commands:
+  - "git clone -b ${DRONE_TAG:-master} https://github.com/ipfs/ipget.git $DRONE_WORKSPACE"
 
-  - name: deps
-    image: golang:1.12.4
-    commands:
-      - make deps
-      - |
-        cat <<EOF >Dockerfile
-        FROM scratch
-        COPY ipget /usr/bin/
-        ENTRYPOINT ["ipget"]
-        EOF
+- name: deps
+  image: golang:1.12.4
+  commands:
+  - make deps
+  - "cat <<EOF >Dockerfile\nFROM scratch\nCOPY ipget /usr/bin/\nENTRYPOINT [\"ipget\"]\nEOF\n"
 
-  - name: amd64
-    image: golang:1.12.4
-    environment:
-      GOOS: linux
-      GOARCH: amd64
-      CGO_ENABLED: 0
-    commands:
-      - go build -o amd64/ipget -ldflags='-s -w'
-      - cp Dockerfile amd64/
+- name: amd64
+  image: golang:1.12.4
+  commands:
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o amd64/ipget"
+  - cp Dockerfile amd64/
+  environment:
+    CGO_ENABLED: 0
+    GOARCH: amd64
+    GOOS: linux
 
-  - name: docker-amd64
-    image: plugins/docker
-    settings:
-      context: amd64
-      repo: quay.io/anguslees/ipget
-      auto_tag: true
-      auto_tag_suffix: linux-amd64
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-    when:
-      event:
-        - push
+- name: arm64
+  image: golang:1.12.4
+  commands:
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o arm64/ipget"
+  - cp Dockerfile arm64/
+  environment:
+    CGO_ENABLED: 0
+    GOARCH: arm64
+    GOOS: linux
 
-  - name: armv6
-    image: golang:1.12.4
-    environment:
-      GOOS: linux
-      GOARCH: arm
-      GOARM: 6
-      CGO_ENABLED: 0
-    commands:
-      - go build -o armv6/ipget -ldflags='-s -w'
-      - cp Dockerfile armv6/
+- name: armv6
+  image: golang:1.12.4
+  commands:
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o armv6/ipget"
+  - cp Dockerfile armv6/
+  environment:
+    CGO_ENABLED: 0
+    GOARCH: arm
+    GOARM: 6
+    GOOS: linux
 
-  - name: docker-armv6
-    image: plugins/docker
-    settings:
-      context: armv6
-      repo: quay.io/anguslees/ipget
-      auto_tag: true
-      auto_tag_suffix: linux-arm-v6
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-    when:
-      event:
-        - push
+- name: armv7
+  image: golang:1.12.4
+  commands:
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o armv7/ipget"
+  - cp Dockerfile armv7/
+  environment:
+    CGO_ENABLED: 0
+    GOARCH: arm
+    GOARM: 7
+    GOOS: linux
 
-  - name: armv7
-    image: golang:1.12.4
-    environment:
-      GOOS: linux
-      GOARCH: arm
-      GOARM: 7
-      CGO_ENABLED: 0
-    commands:
-      - go build -o armv7/ipget -ldflags='-s -w'
-      - cp Dockerfile armv7/
+- name: docker-amd64
+  image: banzaicloud/drone-kaniko
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linuxamd64
+    context: amd64
+    password:
+      from_secret: docker_password
+    repo: quay.io/anguslees/ipget
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
 
-  - name: docker-armv7
-    image: plugins/docker
-    settings:
-      context: armv7
-      repo: quay.io/anguslees/ipget
-      auto_tag: true
-      auto_tag_suffix: linux-arm-v7
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-    when:
-      event:
-        - push
+- name: docker-arm64
+  image: banzaicloud/drone-kaniko
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linuxarm64
+    context: arm64
+    password:
+      from_secret: docker_password
+    repo: quay.io/anguslees/ipget
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
 
-  - name: arm64
-    image: golang:1.12.4
-    environment:
-      GOOS: linux
-      GOARCH: arm64
-      CGO_ENABLED: 0
-    commands:
-      - go build -o arm64/ipget -ldflags='-s -w'
-      - cp Dockerfile arm64/
+- name: docker-armv6
+  image: banzaicloud/drone-kaniko
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linuxarm6
+    context: armv6
+    password:
+      from_secret: docker_password
+    repo: quay.io/anguslees/ipget
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
 
-  - name: docker-arm64
-    image: plugins/docker
-    settings:
-      context: arm64
-      repo: quay.io/anguslees/ipget
-      auto_tag: true
-      auto_tag_suffix: linux-arm64
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-    when:
-      event:
-        - push
+- name: docker-armv7
+  image: banzaicloud/drone-kaniko
+  settings:
+    auto_tag: true
+    auto_tag_suffix: linuxarm7
+    context: armv7
+    password:
+      from_secret: docker_password
+    repo: quay.io/anguslees/ipget
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
 
-  - name: manifest
-    image: plugins/manifest
-    settings:
-      target: quay.io/anguslees/ipget
-      template: quay.io/anguslees/ipget:OS-ARCH-VARIANT
-      platforms:
-        - linux/amd64
-        - linux/arm/v6
-        - linux/arm/v7
-        - linux/arm64
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-    when:
-      event:
-        - push
+- name: manifest
+  image: plugins/manifest
+  settings:
+    password:
+      from_secret: docker_password
+    platforms:
+    - linux/amd64
+    - linux/arm64
+    - linux/arm/6
+    - linux/arm/7
+    target: quay.io/anguslees/ipget
+    template: quay.io/anguslees/ipget:OSARCHVARIANT
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
 
-  - name: publish
-    image: plugins/docker
-    settings:
-      repo: quay.io/anguslees/ipget
-      auto_tag: true
-      username:
-        from_secret: docker_username
-      password:
-        from_secret: docker_password
-    when:
-      event:
-        - push
+- name: publish
+  image: banzaicloud/drone-kaniko
+  settings:
+    auto_tag: true
+    password:
+      from_secret: docker_password
+    repo: quay.io/anguslees/ipget
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - push
+
+...
