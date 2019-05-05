@@ -23,7 +23,7 @@ steps:
   image: golang:1.12.4
   commands:
   - make deps
-  - "cat <<EOF >Dockerfile\nFROM scratch\nARG BIN=ipget\nARG VERSION\nARG COMMIT_SHA\nARG COMMIT_AUTHOR_EMAIL\nLABEL \\\n org.opencontainers.image.revision=$COMMIT_SHA \\\n org.opencontainers.image.authors=$COMMIT_AUTHOR_EMAIL \\\n org.opencontainers.image.url=https://github.com/ipfs/ipget \\\n org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\\n org.opencontainers.image.version=$VERSION\nCOPY $BIN /usr/bin/\nENTRYPOINT [\"ipget\"]\nEOF\n"
+  - "cat <<EOF >Dockerfile\nFROM scratch\nARG BIN=ipget\nLABEL \\\n org.opencontainers.image.revision=$DRONE_COMMIT_SHA \\\n org.opencontainers.image.authors=\"$DRONE_COMMIT_AUTHOR_EMAIL\" \\\n org.opencontainers.image.url=https://github.com/ipfs/ipget \\\n org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\\n org.opencontainers.image.version=$DRONE_TAG\nCOPY \\\\$$BIN /usr/bin/ipget\nENTRYPOINT [\"ipget\"]\nEOF\n"
 
 - name: amd64
   image: golang:1.12.4
@@ -66,82 +66,70 @@ steps:
 - name: docker-amd64
   image: banzaicloud/drone-kaniko
   settings:
-    auto_tag: true
-    auto_tag_suffix: linuxamd64
     build_args:
     - BIN=ipget.amd64
-    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
-    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
-    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
     registry: quay.io
     repo: quay.io/anguslees/ipget
+    tags: "${DRONE_COMMIT_SHA}-linuxamd64"
     username:
       from_secret: docker_username
   when:
     event:
     - push
+    - tag
 
 - name: docker-arm64
   image: banzaicloud/drone-kaniko
   settings:
-    auto_tag: true
-    auto_tag_suffix: linuxarm64
     build_args:
     - BIN=ipget.arm64
-    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
-    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
-    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
     registry: quay.io
     repo: quay.io/anguslees/ipget
+    tags: "${DRONE_COMMIT_SHA}-linuxarm64"
     username:
       from_secret: docker_username
   when:
     event:
     - push
+    - tag
 
 - name: docker-armv6
   image: banzaicloud/drone-kaniko
   settings:
-    auto_tag: true
-    auto_tag_suffix: linuxarm6
     build_args:
     - BIN=ipget.armv6
-    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
-    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
-    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
     registry: quay.io
     repo: quay.io/anguslees/ipget
+    tags: "${DRONE_COMMIT_SHA}-linuxarm6"
     username:
       from_secret: docker_username
   when:
     event:
     - push
+    - tag
 
 - name: docker-armv7
   image: banzaicloud/drone-kaniko
   settings:
-    auto_tag: true
-    auto_tag_suffix: linuxarm7
     build_args:
     - BIN=ipget.armv7
-    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
-    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
-    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
     registry: quay.io
     repo: quay.io/anguslees/ipget
+    tags: "${DRONE_COMMIT_SHA}-linuxarm7"
     username:
       from_secret: docker_username
   when:
     event:
     - push
+    - tag
 
 - name: manifest
   image: plugins/manifest
@@ -155,26 +143,12 @@ steps:
     - linux/arm/7
     registry: quay.io
     repo: quay.io/anguslees/ipget
-    target: quay.io/anguslees/ipget
-    template: quay.io/anguslees/ipget:OSARCHVARIANT
+    template: "quay.io/anguslees/ipget:${DRONE_COMMIT_SHA}-OSARCHVARIANT"
     username:
       from_secret: docker_username
   when:
     event:
     - push
-
-- name: publish
-  image: banzaicloud/drone-kaniko
-  settings:
-    auto_tag: true
-    password:
-      from_secret: docker_password
-    registry: quay.io
-    repo: quay.io/anguslees/ipget
-    username:
-      from_secret: docker_username
-  when:
-    event:
-    - push
+    - tag
 
 ...

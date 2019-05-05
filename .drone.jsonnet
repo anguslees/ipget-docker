@@ -64,16 +64,13 @@ local imgs = {
           cat <<EOF >Dockerfile
           FROM scratch
           ARG BIN=ipget
-          ARG VERSION
-          ARG COMMIT_SHA
-          ARG COMMIT_AUTHOR_EMAIL
           LABEL \
-           org.opencontainers.image.revision=$COMMIT_SHA \
-           org.opencontainers.image.authors=$COMMIT_AUTHOR_EMAIL \
+           org.opencontainers.image.revision=$DRONE_COMMIT_SHA \
+           org.opencontainers.image.authors="$DRONE_COMMIT_AUTHOR_EMAIL" \
            org.opencontainers.image.url=https://github.com/ipfs/ipget \
            org.opencontainers.image.source=https://github.com/ipfs/ipget.git \
-           org.opencontainers.image.version=$VERSION
-          COPY $BIN /usr/bin/
+           org.opencontainers.image.version=$DRONE_TAG
+          COPY \\$$BIN /usr/bin/ipget
           ENTRYPOINT ["ipget"]
           EOF
         |||,
@@ -94,25 +91,20 @@ local imgs = {
     name: "docker-%s" % k,
     image: "banzaicloud/drone-kaniko",
     settings: registry_settings {
-      auto_tag: true,
       local env = {GOARM: ""} + imgs[k].env,
-      auto_tag_suffix: env.GOOS + env.GOARCH + env.GOARM,
+      tags: "${DRONE_COMMIT_SHA}-" + env.GOOS + env.GOARCH + env.GOARM,
       build_args: [
         "BIN=ipget.%s" % k,
-        "COMMIT_SHA=${DRONE_COMMIT_SHA}",
-        "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}",
-        "VERSION=${DRONE_TAG}",
       ],
     },
-    when: {event: ["push"]},
+    when: {event: ["push", "tag"]},
   } for k in std.objectFields(imgs)] +
   [
     {
       name: "manifest",
       image: "plugins/manifest",
       settings: registry_settings {
-        target: self.repo,
-        template: self.repo + ":OSARCHVARIANT",
+        template: self.repo + ":${DRONE_COMMIT_SHA}-OSARCHVARIANT",
         platforms: [
           local env = {GOARM: ""} + imgs[k].env;
           std.join("/", [env.GOOS, env.GOARCH] + (
@@ -121,15 +113,7 @@ local imgs = {
           for k in std.objectFields(imgs)
         ],
       },
-      when: {event: ["push"]},
-    },
-    {
-      name: "publish",
-      image: "banzaicloud/drone-kaniko",
-      settings: registry_settings {
-        auto_tag: true,
-      },
-      when: {event: ["push"]},
+      when: {event: ["push", "tag"]},
     },
   ],
 }
