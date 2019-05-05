@@ -23,13 +23,12 @@ steps:
   image: golang:1.12.4
   commands:
   - make deps
-  - "cat <<EOF >Dockerfile\nFROM scratch\nCOPY ipget /usr/bin/\nENTRYPOINT [\"ipget\"]\nEOF\n"
+  - "cat <<EOF >Dockerfile\nFROM scratch\nARG BIN=ipget\nARG VERSION\nARG COMMIT_SHA\nARG COMMIT_AUTHOR_EMAIL\nLABEL \\\n org.opencontainers.image.revision=$COMMIT_SHA \\\n org.opencontainers.image.authors=$COMMIT_AUTHOR_EMAIL \\\n org.opencontainers.image.url=https://github.com/ipfs/ipget \\\n org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\\n org.opencontainers.image.version=$VERSION\nCOPY $BIN /usr/bin/\nENTRYPOINT [\"ipget\"]\nEOF\n"
 
 - name: amd64
   image: golang:1.12.4
   commands:
-  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o amd64/ipget"
-  - cp Dockerfile amd64/
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.amd64"
   environment:
     CGO_ENABLED: 0
     GOARCH: amd64
@@ -38,8 +37,7 @@ steps:
 - name: arm64
   image: golang:1.12.4
   commands:
-  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o arm64/ipget"
-  - cp Dockerfile arm64/
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.arm64"
   environment:
     CGO_ENABLED: 0
     GOARCH: arm64
@@ -48,8 +46,7 @@ steps:
 - name: armv6
   image: golang:1.12.4
   commands:
-  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o armv6/ipget"
-  - cp Dockerfile armv6/
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.armv6"
   environment:
     CGO_ENABLED: 0
     GOARCH: arm
@@ -59,8 +56,7 @@ steps:
 - name: armv7
   image: golang:1.12.4
   commands:
-  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o armv7/ipget"
-  - cp Dockerfile armv7/
+  - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.armv7"
   environment:
     CGO_ENABLED: 0
     GOARCH: arm
@@ -72,9 +68,14 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linuxamd64
-    context: amd64
+    build_args:
+    - BIN=ipget.amd64
+    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
+    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
+    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
+    registry: quay.io
     repo: quay.io/anguslees/ipget
     username:
       from_secret: docker_username
@@ -87,9 +88,14 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linuxarm64
-    context: arm64
+    build_args:
+    - BIN=ipget.arm64
+    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
+    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
+    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
+    registry: quay.io
     repo: quay.io/anguslees/ipget
     username:
       from_secret: docker_username
@@ -102,9 +108,14 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linuxarm6
-    context: armv6
+    build_args:
+    - BIN=ipget.armv6
+    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
+    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
+    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
+    registry: quay.io
     repo: quay.io/anguslees/ipget
     username:
       from_secret: docker_username
@@ -117,9 +128,14 @@ steps:
   settings:
     auto_tag: true
     auto_tag_suffix: linuxarm7
-    context: armv7
+    build_args:
+    - BIN=ipget.armv7
+    - "COMMIT_SHA=${DRONE_COMMIT_SHA}"
+    - "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}"
+    - "VERSION=${DRONE_TAG}"
     password:
       from_secret: docker_password
+    registry: quay.io
     repo: quay.io/anguslees/ipget
     username:
       from_secret: docker_username
@@ -137,6 +153,8 @@ steps:
     - linux/arm64
     - linux/arm/6
     - linux/arm/7
+    registry: quay.io
+    repo: quay.io/anguslees/ipget
     target: quay.io/anguslees/ipget
     template: quay.io/anguslees/ipget:OSARCHVARIANT
     username:
@@ -151,6 +169,7 @@ steps:
     auto_tag: true
     password:
       from_secret: docker_password
+    registry: quay.io
     repo: quay.io/anguslees/ipget
     username:
       from_secret: docker_username

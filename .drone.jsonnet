@@ -1,6 +1,11 @@
 local goimg = "golang:1.12.4";
 
-local repo = "quay.io/anguslees/ipget";
+local registry_settings = {
+  registry: "quay.io",
+  repo: "quay.io/anguslees/ipget",
+  username: {from_secret: "docker_username"},
+  password: {from_secret: "docker_password"},
+};
 
 local imgs = {
   amd64: {
@@ -58,7 +63,17 @@ local imgs = {
         |||
           cat <<EOF >Dockerfile
           FROM scratch
-          COPY ipget /usr/bin/
+          ARG BIN=ipget
+          ARG VERSION
+          ARG COMMIT_SHA
+          ARG COMMIT_AUTHOR_EMAIL
+          LABEL \
+           org.opencontainers.image.revision=$COMMIT_SHA \
+           org.opencontainers.image.authors=$COMMIT_AUTHOR_EMAIL \
+           org.opencontainers.image.url=https://github.com/ipfs/ipget \
+           org.opencontainers.image.source=https://github.com/ipfs/ipget.git \
+           org.opencontainers.image.version=$VERSION
+          COPY $BIN /usr/bin/
           ENTRYPOINT ["ipget"]
           EOF
         |||,
@@ -72,21 +87,22 @@ local imgs = {
       CGO_ENABLED: 0,
     } + imgs[k].env,
     commands: [
-      "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o %s/ipget" % k,
-      "cp Dockerfile %s/" % k,
+      "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.%s" % k,
     ],
   } for k in std.objectFields(imgs)] +
   [{
     name: "docker-%s" % k,
     image: "banzaicloud/drone-kaniko",
-    settings: {
-      context: k,
-      repo: repo,
+    settings: registry_settings {
       auto_tag: true,
       local env = {GOARM: ""} + imgs[k].env,
       auto_tag_suffix: env.GOOS + env.GOARCH + env.GOARM,
-      username: {from_secret: "docker_username"},
-      password: {from_secret: "docker_password"},
+      build_args: [
+        "BIN=ipget.%s" % k,
+        "COMMIT_SHA=${DRONE_COMMIT_SHA}",
+        "COMMIT_AUTHOR_EMAIL=${DRONE_COMMIT_AUTHOR_EMAIL}",
+        "VERSION=${DRONE_TAG}",
+      ],
     },
     when: {event: ["push"]},
   } for k in std.objectFields(imgs)] +
@@ -94,9 +110,9 @@ local imgs = {
     {
       name: "manifest",
       image: "plugins/manifest",
-      settings: {
-        target: repo,
-        template: repo + ":OSARCHVARIANT",
+      settings: registry_settings {
+        target: self.repo,
+        template: self.repo + ":OSARCHVARIANT",
         platforms: [
           local env = {GOARM: ""} + imgs[k].env;
           std.join("/", [env.GOOS, env.GOARCH] + (
@@ -104,19 +120,14 @@ local imgs = {
           ))
           for k in std.objectFields(imgs)
         ],
-        username: {from_secret: "docker_username"},
-        password: {from_secret: "docker_password"},
       },
       when: {event: ["push"]},
     },
     {
       name: "publish",
       image: "banzaicloud/drone-kaniko",
-      settings: {
-        repo: repo,
+      settings: registry_settings {
         auto_tag: true,
-        username: {from_secret: "docker_username"},
-        password: {from_secret: "docker_password"},
       },
       when: {event: ["push"]},
     },
