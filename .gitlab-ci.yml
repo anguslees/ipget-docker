@@ -15,7 +15,7 @@ stages:
 
 fetch:
   stage: fetch
-  image: docker:git
+  image: alpine/git
   script:
     - >-
       git clone -b ${CI_COMMIT_TAG:-master}
@@ -24,7 +24,7 @@ fetch:
 
 dep:
   stage: dep
-  image: golang:1.12.4
+  image: golang:1.12
   script:
     - make -C $IPGET_CLONE_PATH deps
   cache:
@@ -34,7 +34,7 @@ dep:
 
 .build:
   stage: build
-  image: golang:1.12.4
+  image: golang:1.12
   script:
     - export GOPATH=$GOPATH:$PWD/go
     - >-
