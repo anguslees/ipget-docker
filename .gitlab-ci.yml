@@ -4,7 +4,7 @@ services:
   - docker:dind
 
 variables:
-  IPGET_CLONE_PATH: go/src/github.com/ipfs/ipget
+  IPGET_CLONE_PATH: $CI_PROJECT_DIR/go/src/github.com/ipfs/ipget
 
 stages:
   - fetch
@@ -36,7 +36,7 @@ dep:
   stage: build
   image: golang:1.12
   script:
-    - export GOPATH=$GOPATH:$PWD/go
+    - export GOPATH=$GOPATH:$CI_PROJECT_DIR/go
     - >-
       go build
       -ldflags='-s -w -extldflags=-static'
