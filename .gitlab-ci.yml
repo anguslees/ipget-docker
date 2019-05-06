@@ -9,6 +9,7 @@ variables:
 stages:
   - fetch
   - dep
+  - build
   - push_single
   - push_manifest
 
@@ -21,6 +22,7 @@ before_script:
 fetch:
   stage: fetch
   image: docker:git
+  before_script:
   script:
     - >-
       git clone -b ${CI_COMMIT_TAG:-master}
@@ -30,6 +32,7 @@ fetch:
 dep:
   stage: dep
   image: golang:1.12.4
+  before_script:
   script:
     - make -C $IPGET_CLONE_PATH deps
   artifacts:
@@ -39,7 +42,7 @@ dep:
     expire_in: 1 week
 
 .build:
-  stage: push_single
+  stage: build
   image: golang:1.12.4
   script:
     - export GOPATH=$GOPATH:$PWD/go
@@ -47,17 +50,22 @@ dep:
       go build
       -ldflags='-s -w -extldflags=-static'
       -tags netgo -installsuffix netgo
-      -o ipget.$CI_JOB_NAME
+      -o ipget.${CI_JOB_NAME%-*}
       github.com/ipfs/ipget
+
+.push:
+  stage: push_single
+  image: docker:stable
+  script:
     - >-
       docker build
-      --cache-from $CI_REGISTRY_IMAGE/$CI_JOB_NAME:$CI_COMMIT_REF_NAME
-      --build-arg BIN=ipget.$CI_JOB_NAME
+      --cache-from $CI_REGISTRY_IMAGE/${CI_JOB_NAME%-*}:$CI_COMMIT_REF_NAME
+      --build-arg BIN=ipget.${CI_JOB_NAME%-*}
       --build-arg REVISION=$CI_COMMIT_SHA
       --build-arg VERSION=$CI_COMMIT_TAG
       --build-arg AUTHORS=$GITLAB_USER_EMAIL
-      -t $CI_REGISTRY_IMAGE/$CI_JOB_NAME:$CI_COMMIT_REF_NAME .
-    - docker push $CI_REGISTRY_IMAGE/$CI_JOB_NAME:$CI_COMMIT_REF_NAME
+      -t $CI_REGISTRY_IMAGE/${CI_JOB_NAME%-*}:$CI_COMMIT_REF_NAME .
+    - docker push $CI_REGISTRY_IMAGE/${CI_JOB_NAME%-*}:$CI_COMMIT_REF_NAME
 
 push:
   stage: push_manifest
@@ -83,6 +91,9 @@ armv6:
     GOARCH: arm
     GOARM: 6
 
+armv6-push:
+  extends: .push
+
 armv7:
   extends: .build
   variables:
@@ -90,14 +101,23 @@ armv7:
     GOARCH: arm
     GOARM: 7
 
+armv7-push:
+  extends: .push
+
 arm64:
   extends: .build
   variables:
     GOOS: linux
     GOARCH: arm64
 
+arm64-push:
+  extends: .push
+
 amd64:
   extends: .build
   variables:
     GOOS: linux
     GOARCH: amd64
+
+amd64-push:
+  extends: .push
