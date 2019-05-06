@@ -64,11 +64,11 @@ local imgs = {
           cat <<EOF >Dockerfile
           FROM scratch
           ARG BIN=ipget
-          LABEL \
-           org.opencontainers.image.revision=$DRONE_COMMIT_SHA \
-           org.opencontainers.image.authors="$DRONE_COMMIT_AUTHOR_EMAIL" \
-           org.opencontainers.image.url=https://github.com/ipfs/ipget \
-           org.opencontainers.image.source=https://github.com/ipfs/ipget.git \
+          LABEL \\
+           org.opencontainers.image.revision=$DRONE_COMMIT_SHA \\
+           org.opencontainers.image.authors="$DRONE_COMMIT_AUTHOR_EMAIL" \\
+           org.opencontainers.image.url=https://github.com/ipfs/ipget \\
+           org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\
            org.opencontainers.image.version=$DRONE_TAG
           COPY \\$$BIN /usr/bin/ipget
           ENTRYPOINT ["ipget"]
@@ -96,6 +96,7 @@ local imgs = {
       build_args: [
         "BIN=ipget.%s" % k,
       ],
+      log: "debug",
     },
     when: {event: ["push", "tag"]},
   } for k in std.objectFields(imgs)] +

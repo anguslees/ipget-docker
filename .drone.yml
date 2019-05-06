@@ -23,7 +23,7 @@ steps:
   image: golang:1.12.4
   commands:
   - make deps
-  - "cat <<EOF >Dockerfile\nFROM scratch\nARG BIN=ipget\nLABEL \\\n org.opencontainers.image.revision=$DRONE_COMMIT_SHA \\\n org.opencontainers.image.authors=\"$DRONE_COMMIT_AUTHOR_EMAIL\" \\\n org.opencontainers.image.url=https://github.com/ipfs/ipget \\\n org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\\n org.opencontainers.image.version=$DRONE_TAG\nCOPY \\\\$$BIN /usr/bin/ipget\nENTRYPOINT [\"ipget\"]\nEOF\n"
+  - "cat <<EOF >Dockerfile\nFROM scratch\nARG BIN=ipget\nLABEL \\\\\n org.opencontainers.image.revision=$DRONE_COMMIT_SHA \\\\\n org.opencontainers.image.authors=\"$DRONE_COMMIT_AUTHOR_EMAIL\" \\\\\n org.opencontainers.image.url=https://github.com/ipfs/ipget \\\\\n org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\\\\n org.opencontainers.image.version=$DRONE_TAG\nCOPY \\\\$$BIN /usr/bin/ipget\nENTRYPOINT [\"ipget\"]\nEOF\n"
 
 - name: amd64
   image: golang:1.12.4
@@ -68,6 +68,7 @@ steps:
   settings:
     build_args:
     - BIN=ipget.amd64
+    log: debug
     password:
       from_secret: docker_password
     registry: quay.io
@@ -85,6 +86,7 @@ steps:
   settings:
     build_args:
     - BIN=ipget.arm64
+    log: debug
     password:
       from_secret: docker_password
     registry: quay.io
@@ -102,6 +104,7 @@ steps:
   settings:
     build_args:
     - BIN=ipget.armv6
+    log: debug
     password:
       from_secret: docker_password
     registry: quay.io
@@ -119,6 +122,7 @@ steps:
   settings:
     build_args:
     - BIN=ipget.armv7
+    log: debug
     password:
       from_secret: docker_password
     registry: quay.io
