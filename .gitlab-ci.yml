@@ -21,6 +21,8 @@ fetch:
       git clone -b ${CI_COMMIT_TAG:-master}
       https://github.com/ipfs/ipget.git
       $IPGET_CLONE_PATH
+  artifacts:
+    paths: $IPGET_CLONE_PATH
 
 dep:
   stage: dep
@@ -43,6 +45,9 @@ dep:
       -tags netgo -installsuffix netgo
       -o ipget.${CI_JOB_NAME%-*}
       github.com/ipfs/ipget
+  artifacts:
+    paths:
+      - ipget.*
 
 .push:
   stage: push_single
