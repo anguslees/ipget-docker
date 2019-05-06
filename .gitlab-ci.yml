@@ -22,7 +22,8 @@ fetch:
       https://github.com/ipfs/ipget.git
       $IPGET_CLONE_PATH
   artifacts:
-    paths: $IPGET_CLONE_PATH
+    paths:
+      - $IPGET_CLONE_PATH
 
 dep:
   stage: dep
