@@ -15,7 +15,7 @@ stages:
 
 fetch:
   stage: fetch
-  image: alpine/git
+  image: golang:1.12
   script:
     - >-
       git clone -b ${CI_COMMIT_TAG:-master}
