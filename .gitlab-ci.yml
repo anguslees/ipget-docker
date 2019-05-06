@@ -29,6 +29,7 @@ dep:
   stage: dep
   image: golang:1.12
   script:
+    - export GOPATH=$GOPATH:$CI_PROJECT_DIR/go
     - make -C $IPGET_CLONE_PATH deps
   cache:
     key: $CI_COMMIT_REF_SLUG
