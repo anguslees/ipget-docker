@@ -24,6 +24,7 @@ fetch:
   artifacts:
     paths:
       - $IPGET_CLONE_PATH
+    expires_in: 20m
 
 dep:
   stage: dep
@@ -35,6 +36,10 @@ dep:
     key: $CI_COMMIT_REF_SLUG
     paths:
       - $IPGET_CLONE_PATH/bin/
+  artifacts:
+    paths:
+      - $IPGET_CLONE_PATH/go/src/gx
+    expires_in: 20m
 
 .build:
   stage: build
@@ -50,6 +55,7 @@ dep:
   artifacts:
     paths:
       - ipget.*
+    expires_in: 20m
 
 .push:
   stage: push_single
