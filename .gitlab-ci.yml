@@ -27,11 +27,10 @@ dep:
   image: golang:1.12.4
   script:
     - make -C $IPGET_CLONE_PATH deps
-  artifacts:
-    name: gx
+  cache:
+    key: $CI_COMMIT_REF_SLUG
     paths:
       - $IPGET_CLONE_PATH/bin/
-    expire_in: 1 week
 
 .build:
   stage: build
