@@ -15,7 +15,7 @@ stages:
 
 fetch:
   stage: fetch
-  image: golang:1.12
+  image: golang:1.16
   script:
     - >-
       git clone -b ${CI_COMMIT_TAG:-master}
@@ -28,7 +28,7 @@ fetch:
 
 dep:
   stage: dep
-  image: golang:1.12
+  image: golang:1.16
   script:
     - export GOPATH=$CI_PROJECT_DIR/go
     - make -C $IPGET_CLONE_PATH deps
@@ -43,7 +43,7 @@ dep:
 
 .build:
   stage: build
-  image: golang:1.12
+  image: golang:1.16
   script:
     - export GOPATH=$CI_PROJECT_DIR/go
     - >-
