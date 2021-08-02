@@ -20,13 +20,13 @@ steps:
   - "git clone -b ${DRONE_TAG:-master} https://github.com/ipfs/ipget.git $DRONE_WORKSPACE"
 
 - name: deps
-  image: golang:1.16.5
+  image: golang:1.16.6
   commands:
   - make deps
   - "cat <<EOF >Dockerfile\nFROM scratch\nARG BIN=ipget\nLABEL \\\\\n org.opencontainers.image.revision=$DRONE_COMMIT_SHA \\\\\n org.opencontainers.image.authors=\"$DRONE_COMMIT_AUTHOR_EMAIL\" \\\\\n org.opencontainers.image.url=https://github.com/ipfs/ipget \\\\\n org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\\\\n org.opencontainers.image.version=$DRONE_TAG\nCOPY \\\\$$BIN /usr/bin/ipget\nENTRYPOINT [\"ipget\"]\nEOF\n"
 
 - name: amd64
-  image: golang:1.16.5
+  image: golang:1.16.6
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.amd64"
   environment:
@@ -35,7 +35,7 @@ steps:
     GOOS: linux
 
 - name: arm64
-  image: golang:1.16.5
+  image: golang:1.16.6
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.arm64"
   environment:
@@ -44,7 +44,7 @@ steps:
     GOOS: linux
 
 - name: armv6
-  image: golang:1.16.5
+  image: golang:1.16.6
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.armv6"
   environment:
@@ -54,7 +54,7 @@ steps:
     GOOS: linux
 
 - name: armv7
-  image: golang:1.16.5
+  image: golang:1.16.6
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.armv7"
   environment:
