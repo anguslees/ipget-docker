@@ -1,7 +1,7 @@
-image: docker:stable
+image: docker:stable@sha256:fd4d028713fd05a1fb896412805daed82c4a0cc84331d8dad00cb596d7ce3e3a
 
 services:
-  - docker:dind
+  - docker:dind@sha256:1efacb06edbb1e2bd4a39dcc69883866c7dd98562a49fa97d7d29c2da1c3974f
 
 variables:
   IPGET_CLONE_PATH: $CI_PROJECT_DIR/go/src/github.com/ipfs/ipget
@@ -59,7 +59,7 @@ dep:
 
 .push:
   stage: push_single
-  image: docker:stable
+  image: docker:stable@sha256:fd4d028713fd05a1fb896412805daed82c4a0cc84331d8dad00cb596d7ce3e3a
   before_script:
     - mkdir -p ~/.docker
     - >-
