@@ -15,7 +15,7 @@ stages:
 
 fetch:
   stage: fetch
-  image: golang:1.17@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   script:
     - >-
       git clone -b ${CI_COMMIT_TAG:-master}
@@ -28,7 +28,7 @@ fetch:
 
 dep:
   stage: dep
-  image: golang:1.17@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   script:
     - export GOPATH=$CI_PROJECT_DIR/go
     - make -C $IPGET_CLONE_PATH deps
@@ -43,7 +43,7 @@ dep:
 
 .build:
   stage: build
-  image: golang:1.17@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   script:
     - export GOPATH=$CI_PROJECT_DIR/go
     - >-
