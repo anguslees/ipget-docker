@@ -20,13 +20,13 @@ steps:
   - "git clone -b ${DRONE_TAG:-master} https://github.com/ipfs/ipget.git $DRONE_WORKSPACE"
 
 - name: deps
-  image: golang:1.17.1@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17.1@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   commands:
   - make deps
   - "cat <<EOF >Dockerfile\nFROM scratch\nARG BIN=ipget\nLABEL \\\\\n org.opencontainers.image.revision=$DRONE_COMMIT_SHA \\\\\n org.opencontainers.image.authors=\"$DRONE_COMMIT_AUTHOR_EMAIL\" \\\\\n org.opencontainers.image.url=https://github.com/ipfs/ipget \\\\\n org.opencontainers.image.source=https://github.com/ipfs/ipget.git \\\\\n org.opencontainers.image.version=$DRONE_TAG\nCOPY \\\\$$BIN /usr/bin/ipget\nENTRYPOINT [\"ipget\"]\nEOF\n"
 
 - name: amd64
-  image: golang:1.17.1@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17.1@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.amd64"
   environment:
@@ -35,7 +35,7 @@ steps:
     GOOS: linux
 
 - name: arm64
-  image: golang:1.17.1@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17.1@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.arm64"
   environment:
@@ -44,7 +44,7 @@ steps:
     GOOS: linux
 
 - name: armv6
-  image: golang:1.17.1@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17.1@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.armv6"
   environment:
@@ -54,7 +54,7 @@ steps:
     GOOS: linux
 
 - name: armv7
-  image: golang:1.17.1@sha256:285cf0cb73ab995caee61b900b2be123cd198f3541ce318c549ea5ff9832bdf0
+  image: golang:1.17.1@sha256:c9fbf6d2c4730573ba487805e859bc80239af1985641c7b031bff046b51f60db
   commands:
   - "go build -ldflags='-s -w -extldflags=-static' -tags netgo -installsuffix netgo -o ipget.armv7"
   environment:
