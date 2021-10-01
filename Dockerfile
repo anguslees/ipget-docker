@@ -19,13 +19,13 @@ ENV GOOS=${TARGETOS}
 ENV GOARCH=${TARGETARCH}
 
 RUN \
-	--mount=type=cache,target=/go/pkg/mod \
-	--mount=type=cache,target=/go/.buildcache \
+        --mount=type=cache,target=/go/pkg/mod \
+        --mount=type=cache,target=/go/.buildcache \
         set -e; \
-	if [ "$TARGETARCH" = "arm" ]; then \
-		GOARM="${TARGETVARIANT#v}"; \
-                export GOARM
-	fi; \
+        if [ "$TARGETARCH" = "arm" ]; then \
+                GOARM="${TARGETVARIANT#v}"; \
+                export GOARM; \
+        fi; \
         go build -o /out/ipget
 
 FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
