@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.2
-FROM --platform=$BUILDPLATFORM golang AS builder
+FROM --platform=$BUILDPLATFORM golang@sha256:02d7116222536a5cf0fcf631f90b507758b669648e0f20186d2dc94a9b419a9b AS builder
 
 # renovate: datasource=github-releases repoName=ipfs/ipget
 ENV IPGET_VERSION=v0.7.0
@@ -28,7 +28,7 @@ RUN \
         fi; \
         go build -o /out/ipget
 
-FROM --platform=$TARGETPLATFORM gcr.io/distroless/static
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/static@sha256:6706c73aae2afaa8201d63cc3dda48753c09bcd6c300762251065c0f7e602b25
 
 COPY --from=builder /out/ipget /usr/bin/ipget
 ENTRYPOINT ["ipget"]
