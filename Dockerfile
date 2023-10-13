@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.2
-FROM --platform=$BUILDPLATFORM golang@sha256:f94cb10ec1bab9bbc0e43386aed3615498d4a03d6c1781dd86c452d7ee5c5b9e AS builder
+FROM --platform=$BUILDPLATFORM golang@sha256:24a09375a6216764a3eda6a25490a88ac178b5fcb9511d59d0da5ebf9e496474 AS builder
 
 # renovate: datasource=github-releases repoName=ipfs/ipget
 ENV IPGET_VERSION=v0.7.0
