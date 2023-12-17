@@ -28,7 +28,7 @@ RUN \
         fi; \
         go build -o /out/ipget
 
-FROM --platform=$TARGETPLATFORM gcr.io/distroless/static@sha256:6706c73aae2afaa8201d63cc3dda48753c09bcd6c300762251065c0f7e602b25
+FROM --platform=$TARGETPLATFORM gcr.io/distroless/static@sha256:9be3fcc6abeaf985b5ecce59451acbcbb15e7be39472320c538d0d55a0834edc
 
 COPY --from=builder /out/ipget /usr/bin/ipget
 ENTRYPOINT ["ipget"]
